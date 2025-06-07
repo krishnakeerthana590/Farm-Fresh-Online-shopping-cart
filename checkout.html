@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Farm Fresh - Checkout</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#16a34a" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: linear-gradient(135deg, #d9f99d 25%, #a7f3d0 100%);
+    }
+    header {
+      box-shadow: 0 4px 8px rgba(22, 163, 74, 0.4);
+    }
+    form label {
+      font-weight: 600;
+      color: #166534;
+    }
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    textarea {
+      border: 2px solid #4ade80;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus,
+    input[type="tel"]:focus,
+    input[type="email"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #15803d;
+      box-shadow: 0 0 5px #15803d;
+    }
+    button[type="submit"] {
+      box-shadow: 0 4px 6px rgba(22, 163, 74, 0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    button[type="submit"]:hover:not(:disabled) {
+      background-color: #15803d;
+      box-shadow: 0 6px 12px rgba(22, 163, 74, 0.6);
+    }
+    button[type="submit"]:disabled {
+      background-color: #a7f3d0;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    #msg {
+      font-size: 1.1rem;
+      min-height: 2em;
+      color: #166534;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="font-sans p-6">
+  <header class="bg-green-600 text-white p-4 text-center text-2xl font-bold rounded-lg">
+    🛒 Checkout - Farm Fresh
+  </header>
+
+  <main class="max-w-md mx-auto mt-8 bg-white p-6 rounded-lg shadow-lg">
+    <form id="orderForm" class="flex flex-col gap-5" novalidate>
+      <label>
+        Full Name:
+        <input type="text" name="name" required class="w-full rounded p-3" placeholder="John Doe" />
+      </label>
+      <label>
+        Email Address:
+        <input type="email" name="email" required class="w-full rounded p-3" placeholder="john@example.com" />
+      </label>
+      <label>
+        Phone Number:
+        <input type="tel" name="phone" pattern="^\+?\d{7,15}$" required class="w-full rounded p-3" placeholder="+919876543210" />
+      </label>
+      <label>
+        Address:
+        <textarea name="address" required rows="4" class="w-full rounded p-3 resize-none" placeholder="123 Farm Street, City, State, ZIP"></textarea>
+      </label>
+      <button type="submit" class="bg-green-600 text-white py-3 rounded font-semibold">
+        Place Order
+      </button>
+    </form>
+
+    <div id="msg" role="alert" class="mt-6 text-center"></div>
+  </main>
+
+  <script>
+    // Redirect if cart is empty
+    const cart = JSON.parse(localStorage.getItem('cart')) || {};
+    if (Object.keys(cart).length === 0) {
+      alert('Your cart is empty! Please add products first.');
+      window.location.href = 'index.html';
+    }
+
+    const form = document.getElementById('orderForm');
+    const msgEl = document.getElementById('msg');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    // Simple form validation feedback
+    function validateForm() {
+      return form.checkValidity();
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      // If form invalid, show browser validation
+      if (!validateForm()) {
+        form.reportValidity();
+        return;
+      }
+
+      submitBtn.disabled = true; // Disable button to prevent multiple submits
+      msgEl.textContent = 'Placing your order...';
+
+      const formData = new FormData(form);
+      const order = {
+        customer: {
+          name: formData.get('name').trim(),
+          email: formData.get('email').trim(),
+          phone: formData.get('phone').trim(),
+          address: formData.get('address').trim(),
+        },
+        cart,
+        date: new Date().toISOString()
+      };
+
+      // Save order to localStorage (simulate backend)
+      let orders = JSON.parse(localStorage.getItem('orders')) || [];
+      orders.push(order);
+      localStorage.setItem('orders', JSON.stringify(orders));
+
+      // Clear cart and reset form
+      localStorage.removeItem('cart');
+      form.reset();
+
+      // Show success message
+      msgEl.textContent = '✅ Order placed successfully! Thank you for shopping with us.';
+
+      // Redirect to homepage after 4 seconds
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 4000);
+    });
+
+    // Register service worker if available
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    }
+  </script>
+</body>
+</html>

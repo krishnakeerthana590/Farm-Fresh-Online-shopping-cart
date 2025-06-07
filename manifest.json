@@ -1,0 +1,22 @@
+{
+  "name": "Farm Fresh E-Commerce",
+  "short_name": "FarmFresh",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "scope": "./",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "description": "Buy fresh fruits, vegetables, dairy and nuts online from Farm Fresh.",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

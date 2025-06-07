@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Farm Fresh - Home</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#16a34a" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .category-btn.active {
+      background-color: #22c55e;
+      color: white;
+      border-color: #16a34a;
+    }
+    button {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    #cartModal {
+      display: none;
+      box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3), 0 4px 6px -2px rgba(22, 163, 74, 0.2);
+    }
+    #cart-items::-webkit-scrollbar {
+      width: 6px;
+    }
+    #cart-items::-webkit-scrollbar-thumb {
+      background-color: #22c55e;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-green-50 font-sans relative">
+  <header class="bg-green-600 text-white p-4 text-center text-2xl font-bold shadow relative">
+    🛒 Farm Fresh Store
+    <div class="absolute top-4 right-4 cursor-pointer" onclick="toggleCart()">
+      <span class="relative">🛍️<span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 rounded-full">0</span></span>
+    </div>
+  </header>
+
+  <nav class="flex justify-center gap-4 p-4 bg-white shadow">
+    <button class="category-btn px-4 py-2 rounded border" onclick="filterProducts('all')">All</button>
+    <button class="category-btn px-4 py-2 rounded border" onclick="filterProducts('fruits')">Fruits</button>
+    <button class="category-btn px-4 py-2 rounded border" onclick="filterProducts('vegetables')">Vegetables</button>
+    <button class="category-btn px-4 py-2 rounded border" onclick="filterProducts('dairy')">Dairy</button>
+    <button class="category-btn px-4 py-2 rounded border" onclick="filterProducts('nuts')">Nuts</button>
+  </nav>
+
+  <main class="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="product-grid"></main>
+
+  <!-- Cart Modal -->
+  <div id="cartModal" class="fixed top-16 right-4 w-80 bg-white shadow-lg rounded-xl p-4 z-50">
+    <h2 class="text-lg font-bold mb-2">🧺 Your Cart</h2>
+    <div id="cart-items" class="text-sm max-h-64 overflow-auto border-b pb-2"></div>
+    <div class="mt-2 font-semibold text-right">Total: ₹<span id="cart-total">0</span></div>
+    <button onclick="window.location.href='checkout.html'" class="mt-4 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 w-full">Proceed to Checkout</button>
+    <button onclick="clearCart()" class="mt-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 w-full">Clear Cart</button>
+  </div>
+
+  <footer class="bg-green-700 text-white text-center p-4 mt-6">
+    Contact: farmfresh@example.com | 📞 +91 9876543210
+  </footer>
+
+  <script>
+     const products = [
+  { name: "apple", price: 80, image: "images/apple.jpg" },
+  { name: "banana", price: 30, image: "images/banana.jpg", category: "fruits" },
+  { name: "mango", price: 100, image: "images/mango.jpg", category: "fruits" },
+  { name: "carrot", price: 35, image: "images/carrot.jpg", category: "vegetables" },
+  { name: "onion", price: 20, image: "images/onion.jpg", category: "vegetables" },
+  { name: "tomato", price: 25, image: "images/tomato.jpg", category: "vegetables" },
+  { name: "milk", price: 50, image: "images/milk.jpg", category: "dairy" },
+  { name: "cheese", price: 90, image: "images/cheese.jpg", category: "dairy" },
+  { name: "butter", price: 70, image: "images/butter.jpg", category: "dairy" },
+  { name: "almonds", price: 150, image: "images/almonds.jpg", category: "nuts" },
+  { name: "cashews", price: 160, image: "images/cashews.jpg", category: "nuts" }
+];
+
+    function renderProducts(category = "all") {
+      const grid = document.getElementById("product-grid");
+      grid.innerHTML = "";
+      const filtered = category === "all" ? products : products.filter(p => p.category === category);
+      filtered.forEach(prod => {
+        const card = `
+          <div class="bg-white rounded-xl shadow-md p-3 hover:shadow-lg transition">
+            <img src="${prod.image}" alt="${prod.name}" class="w-full h-32 object-cover rounded-lg" />
+            <h2 class="text-lg font-semibold mt-2">${prod.name}</h2>
+            <p class="text-green-600 font-bold">₹${prod.price}/kg</p>
+            <button class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 w-full" onclick="addToCart('${prod.name}')">Add to Cart</button>
+          </div>
+        `;
+        grid.innerHTML += card;
+      });
+    }
+
+    function filterProducts(category) {
+      renderProducts(category);
+      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function addToCart(name) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || {};
+      cart[name] = (cart[name] || 0) + 1;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCart();
+    }
+
+    function updateCart() {
+      let cart = JSON.parse(localStorage.getItem('cart')) || {};
+      const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
+      document.getElementById('cart-count').innerText = totalItems;
+      renderCartItems(cart);
+    }
+
+    function toggleCart() {
+      const modal = document.getElementById("cartModal");
+      modal.style.display = modal.style.display === "none" || modal.style.display === "" ? "block" : "none";
+    }
+
+    function renderCartItems(cart = {}) {
+      let container = document.getElementById('cart-items');
+      let total = 0;
+      container.innerHTML = "";
+
+      if (Object.keys(cart).length === 0) {
+        container.innerHTML = "<p class='text-gray-500'>Cart is empty.</p>";
+        document.getElementById('cart-total').innerText = "0";
+        return;
+      }
+
+      for (let item in cart) {
+        const product = products.find(p => p.name === item);
+        const subtotal = product.price * cart[item];
+        total += subtotal;
+        container.innerHTML += `
+          <div class="flex justify-between items-center py-1">
+            <span>${item}</span>
+            <div class="flex items-center gap-1">
+              <button onclick="changeQty('${item}', -1)" class="px-2 bg-gray-200 rounded hover:bg-gray-300">-</button>
+              <span>${cart[item]}</span>
+              <button onclick="changeQty('${item}', 1)" class="px-2 bg-gray-200 rounded hover:bg-gray-300">+</button>
+            </div>
+            <span>₹${subtotal}</span>
+          </div>`;
+      }
+      document.getElementById('cart-total').innerText = total;
+    }
+
+    function changeQty(item, delta) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || {};
+      cart[item] += delta;
+      if (cart[item] <= 0) delete cart[item];
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCart();
+    }
+
+    function clearCart() {
+      localStorage.removeItem('cart');
+      updateCart();
+      toggleCart();
+    }
+
+    // Initial render and setup
+    renderProducts();
+    updateCart();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker registered!'))
+        .catch(err => console.error('Service Worker failed:', err));
+    }
+  </script>
+</body>
+</html>
